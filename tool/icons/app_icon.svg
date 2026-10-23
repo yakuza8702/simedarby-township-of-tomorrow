@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="108" height="108" role="img" aria-label="Township of Tomorrow launcher icon">
+  <!--
+    Township of Tomorrow launcher icon (v0.4.0 icon refresh).
+    Theme: green + recyclable + community.
+    Layers (kept deliberately simple):
+      1. tile      — squircle, #2E7D32 base with a soft top-light
+                     (#388E3C top -> #2E7D32 -> #1B5E20 depth at bottom)
+      2. loop      — three chasing arrows (white) forming a closed circle,
+                     one arrow drawn once + rotated 120/240
+      3. leaf      — small light-green sprout emerging from the top gap
+                     of the loop (the "recycle grows back" accent)
+    Canvas = adaptive-icon 108dp grid. Glyph occupies the inner ~64/108
+    (<=66% safe zone): loop outer reach r=32, leaf tip reach r=34.
+    Legacy full-bleed render uses this file as-is (rounded corners);
+    adaptive foreground uses app_icon_foreground.svg (glyph only).
+  -->
+  <defs>
+    <linearGradient id="tileLight" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#388E3C"/>
+      <stop offset="0.45" stop-color="#2E7D32"/>
+      <stop offset="1" stop-color="#1B5E20"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 1. squircle tile -->
+  <rect x="0" y="0" width="108" height="108" rx="24" ry="24" fill="url(#tileLight)"/>
+
+  <!-- 2. recycling loop: three chasing arrows, top gap centred at 90 deg -->
+  <g transform="rotate(23 54 54)" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="butt">
+    <!-- arrow A: arc 0->90 deg, head base at 90 deg, tip at 106 deg -->
+    <path d="M78 54 A24 24 0 0 0 54 30"/>
+    <path d="M54 22 L54 38 L47.38 30.93 Z" fill="#FFFFFF" stroke="none"/>
+    <!-- arrow B (+120) -->
+    <g transform="rotate(120 54 54)">
+      <path d="M78 54 A24 24 0 0 0 54 30"/>
+      <path d="M54 22 L54 38 L47.38 30.93 Z" fill="#FFFFFF" stroke="none"/>
+    </g>
+    <!-- arrow C (+240) -->
+    <g transform="rotate(240 54 54)">
+      <path d="M78 54 A24 24 0 0 0 54 30"/>
+      <path d="M54 22 L54 38 L47.38 30.93 Z" fill="#FFFFFF" stroke="none"/>
+    </g>
+  </g>
+
+  <!-- 3. leaf sprouting from the loop's top opening -->
+  <path d="M54 34 Q48 27 57 20 Q62.5 28 54 34 Z" fill="#C8E6C9"/>
+</svg>

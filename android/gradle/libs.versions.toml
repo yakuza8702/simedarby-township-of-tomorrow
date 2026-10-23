@@ -1,0 +1,20 @@
+# Centralized versions for the whole Android build (Flutter module included).
+# NOTE: AGP is consumed through the flutter_tools gradle includeBuild, which is
+# compiled against AGP 8.11.1 (its compileOnly pin, patched to implementation);
+# AGP 9.x removed the com.android.build.api.variant.Variant API it needs, so
+# the agp/kotlin entries below document the effective versions rather than
+# driving resolution.
+[versions]
+agp = "8.11.1"
+kotlin = "2.2.10"
+flutterPluginLoader = "1.0.0"
+township = "0.4.1"
+townshipVersionCode = "6"
+
+[libraries]
+townshipcore = { module = "com.townshipoftomorrow:townshipcore", version = "0.2.0" }
+
+[plugins]
+flutter-plugin-loader = { id = "dev.flutter.flutter-plugin-loader", version.ref = "flutterPluginLoader" }
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

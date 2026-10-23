@@ -1,0 +1,58 @@
+name: township_of_tomorrow
+description: >-
+  Township of Tomorrow — offline waste-stream scanner and collection log.
+  On-device AI only: EfficientDet-Lite0 (TFLite), MobileNet v3 embedder for a
+  local kNN classifier, ML Kit labelling fallback, Go core via gomobile.
+publish_to: 'none'
+version: 0.4.1+6
+
+environment:
+  sdk: ^3.13.5
+
+dependencies:
+  camera: ^0.12.1
+  flutter:
+    sdk: flutter
+  flutter_map: ^8.3.2
+  google_mlkit_image_labeling: ^0.16.1
+  google_mlkit_text_recognition: ^0.17.1
+  image: ^4.12.0
+  image_picker: ^1.2.4
+  latlong2: ^0.10.1
+  path_provider: ^2.1.6
+  tflite_flutter: ^0.12.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  integration_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  # Runtime asset allowlist. Explicit files only — no directory globs — so a
+  # stray fixture/annotation tree (assets/test_images/, **/.cache) can never be
+  # swept into the bundle. This list is exactly the set lib/ loads at runtime:
+  #   efficientdet.dart  -> efficientdet-lite0-int8.tflite, coco-labels.txt
+  #   yolo_detector.dart -> yolo_detect_fp16.tflite, coco_labels.txt, coco-labels.txt
+  #   embedder.dart      -> mobilenet_v3_small_embedder.tflite, knn/seed/*
+  #   registry.json      -> on-device model registry metadata
+  assets:
+    - assets/models/efficientdet-lite0-int8.tflite
+    - assets/models/mobilenet_v3_small_embedder.tflite
+    - assets/models/yolo_detect_fp16.tflite
+    - assets/models/yolo26n_int8.tflite
+    - assets/models/yolo26n_fp32.tflite
+    - assets/models/coco-labels.txt
+    - assets/models/coco_labels.txt
+    - assets/models/registry.json
+    - assets/knn/seed/seed.json
+    - assets/knn/seed/bottle_plastic.jpg
+    - assets/knn/seed/can_aluminium.jpg
+    - assets/knn/seed/banana_peel.jpg
+    - assets/knn/seed/cardboard_box.jpg
+    - assets/knn/seed/laptop.jpg
+    - assets/knn/seed/battery_aa.jpg
+    - assets/knn/seed/tshirt.jpg
+    - assets/knn/seed/tissue_paper.jpg

@@ -1,0 +1,73 @@
+name: Android APK (auto-build)
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build-arm64-release:
+    name: Build arm64 release APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter 3.47.7
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.7'
+          channel: stable
+          cache: true
+
+      - name: flutter pub get
+        run: flutter pub get
+
+      # Documented single-ABI release chain — README.md ("Quirk when running
+      # Gradle directly") + test-folder/logs/arm64-size-report-v041.md.
+      # The three flags are mandatory: without them the APK ships all three
+      # ABIs (192 MB instead of 96 MB) and skips icon tree-shaking.
+      - name: assembleRelease (arm64-v8a, ABI filter forced, icons tree-shaken)
+        run: cd android && ./gradlew assembleRelease -Ptownship.abiFilters=arm64-v8a -Pdisable-abi-filtering=true -Ptree-shake-icons=true
+
+      - name: SHA-256 of the APK (job summary)
+        id: sha256
+        run: |
+          set -euo pipefail
+          APK="$(ls build/app/outputs/apk/release/*.apk android/app/build/outputs/apk/release/*.apk 2>/dev/null | head -n 1)"
+          if [ -z "$APK" ]; then
+            echo "::error::No release APK found"
+            exit 1
+          fi
+          echo "apk=$APK" >> "$GITHUB_OUTPUT"
+          SUM="$(sha256sum "$APK")"
+          SIZE="$(stat -c %s "$APK")"
+          echo "$SUM"
+          {
+            echo "## Township of Tomorrow — release APK"
+            echo ""
+            echo "| field | value |"
+            echo "|---|---|"
+            echo "| file | \`$APK\` |"
+            echo "| size (bytes) | $SIZE |"
+            echo "| sha256 | \`${SUM%% *}\` |"
+            echo ""
+            echo "Single-ABI build: \`arm64-v8a\` only (\`-Pdisable-abi-filtering=true\`, \`-Ptree-shake-icons=true\`)."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload APK artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: township-of-tomorrow-arm64-release
+          path: |
+            build/app/outputs/apk/release/*.apk
+            android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error

@@ -1,0 +1,75 @@
+{
+  "comment": "On-device detector registry. The optional \"role\" field decides what YoloDetector opens WITHIN one \"format\" family: \"primary\" is the graph this build runs first, \"fallback\" is opened only when the primary asset is missing or the native runtime refuses it, and \"candidate\" (or no role at all) is registered and documented but never auto-loaded — promote it by editing \"role\". A model file that is not bundled simply makes its entry inert, so deleting the primary file reverts to the fallback with no code change. YoloDetector also keeps a per-device runtime verdict (code_cache/township_models/runtime_verdict.json, keyed by a content fingerprint) for a graph the native TFLite refuses to execute, so later starts and worker isolates skip it instead of re-failing.",
+  "models": [
+    {
+      "id": "efficientdet-lite0-int8",
+      "file": "efficientdet-lite0-int8.tflite",
+      "labels": "coco-labels.txt",
+      "format": "efficientdet",
+      "anchorScale": 3.0,
+      "license": "Apache-2.0 (MediaPipe / Google AI Edge)",
+      "note": "Primary engine: 4.6 MB, 320x320 uint8, raw detection heads — TfliteDetector decodes the anchors and runs NMS itself. Verified against the reference LiteRT runtime (19206 anchors) and on the emulator."
+    },
+    {
+      "id": "yolo26n-fp32",
+      "file": "yolo26n_fp32.tflite",
+      "labels": "coco_labels.txt",
+      "format": "yolo",
+      "role": "candidate",
+      "engine": "YOLO26n fp32",
+      "inputSize": [
+        640,
+        640
+      ],
+      "classes": 80,
+      "outputLayout": "v8",
+      "license": "AGPL-3.0 (Ultralytics)",
+      "sha256": "0743bca7eb3ad24d7cf7b792885ef461cf72ce39f54a9bbbd44489b9cbfece13",
+      "source": "Host export from ultralytics/assets v8.4.0 yolo26n.pt: yolo export format=onnx imgsz=640 dynamic=False -> onnx2tf -tb tf_converter -osd -> tf.lite.TFLiteConverter.from_saved_model (float32, no optimisations)",
+      "note": "MEASURED CANDIDATE, not auto-loaded. This float32 yolo26n export DOES execute on the bundled runtime - in [1,640,640,3] float32 (NHWC) -> out [1,84,8400] float32, static shapes, 0 tensors with a dynamic signature - and it is far cheaper than the fp16 graph: device bench on emulator-5554, 2026-10-15, 0.32-0.57 s per image and the whole 21-image bench in 12.2 s, versus ~10.4 s per image / 219 s for the fp16 graph (about 20x). Its accuracy is below the shipped baseline though: category 18/21 = 85.7% (any-match) and label 14/21 = 66.7%, against 95.2% / 81.0% for the fp16 graph, so per the B9-E1 decision rule it is NOT kept as primary. Next step if wanted: re-export a larger YOLO26 variant (e.g. yolo26s/m) float32 with the same recipe as \"source\" and re-gate with integration_test/on_device_detection_test.dart; the decode path and the registry need no change, only the role fields."
+    },
+    {
+      "id": "yolo26n-int8",
+      "file": "yolo26n_int8.tflite",
+      "labels": "coco_labels.txt",
+      "format": "yolo",
+      "role": "candidate",
+      "engine": "YOLO26n int8",
+      "inputSize": [
+        640,
+        640
+      ],
+      "classes": 80,
+      "outputLayout": "v8",
+      "license": "AGPL-3.0 (Ultralytics)",
+      "sha256": "d9cef07ce652ccfa9ce58e4ac8a4df98ff037739a9dad20a8afcae21b545df73",
+      "source": "https://github.com/ultralytics/yolo-flutter-app/releases/download/v0.6.6/yolo26n_w8a32.tflite",
+      "note": "REGISTERED CANDIDATE, not auto-loaded (its float32 sibling yolo26n_fp32.tflite is the primary for exactly this reason): the yolo26n_w8a32 v0.6.6 export cannot allocate int8 weight constants on tflite_flutter 0.12.1's bundled runtime (reported TfLiteVersion() = 2.20.0-dev0+selfbuilt on emulator-5554; Input tensor 235 lacks data, 3 dynamic-shape tensors) — unblock by (a) bumping the TFLite/LiteRT runtime or (b) re-exporting yolo26n float32/dynamic-range without dynamic shapes, then re-gate with integration_test/on_device_detection_test.dart (baseline 95.2% category / 81.0% label). Promote it back to role \"primary\" once that gate passes. Non-end2end nano detect head, decoded by the shipped v8-style path: in [1,3,640,640] float32 (NCHW) -> out [1,84,8400] float32 (4 box + 80 COCO class columns, transposed, no objectness); 2.87 MB, int8 weights / float32 activations. Provenance: upstream names this export yolo26n_w8a32.tflite and ships it in v0.6.6, the newest release that carries assets — the local name yolo26n_int8.tflite is the mandated bundle slot. Two lookalikes were rejected on 2026-10-15 after parsing them: v0.3.5/yolo26n_int8.tflite is not a flatbuffer at all (a ZIP whose only entries are two metadata.json files), and v0.2.0/yolo26n_int8.tflite is an end2end export (out [1,300,6], already NMS-fused) that this decoder cannot read. Loading itself is proven on device (emulator-5554, 2026-10-15): the detector reads the live tensors and logs inType=float32 inBytes=4915200 (640*640*3*4) / outType=float32 outBytes=2822400 (84*8400*4), i.e. the feed is byte-exact and the refusal is the runtime's, not the decoder's; the failure persists after a forced AllocateTensors re-seat, so it is not a stale-handle artefact."
+    },
+    {
+      "id": "yolo-detect-fp16",
+      "file": "yolo_detect_fp16.tflite",
+      "labels": "coco_labels.txt",
+      "format": "yolo",
+      "role": "primary",
+      "engine": "YOLO detect fp16",
+      "inputSize": [
+        640,
+        640
+      ],
+      "classes": 80,
+      "outputLayout": "v8",
+      "license": "AGPL-3.0 (Ultralytics)",
+      "sha256": "fe64cf52917b69f8d04727fd24c1c7271bd47b5b92f1a7f475822b71a017dee6",
+      "note": "PRIMARY YOLO engine, and the accuracy leader: 11.5 MB, in [1,640,640,3] float32 (NHWC) -> out [1,84,8400] float32 (8400 = 80^2 + 40^2 + 20^2 anchors). Device bench on emulator-5554, 2026-10-15: 20/21 category accuracy (95.2%, any-match) and 17/21 label accuracy (81.0%), PASS at the 80% gate, 21 images, 0 zero-detection images - at ~10.4 s per image. The faster float32 candidate in this file measured 85.7% / 66.7%, which is why this graph stays primary; it also doubles as the last-resort graph whenever a promoted candidate is missing or refused."
+    },
+    {
+      "id": "yolov8n",
+      "file": "yolov8n.tflite",
+      "labels": "coco-labels.txt",
+      "format": "yolo",
+      "license": "AGPL-3.0 (Ultralytics)",
+      "note": "Opt-in only — the file is NOT bundled. To add a YOLO engine: yolo export model=yolov8n.pt format=tflite imgsz=640 int8=True data=<a calibration yaml>. The previous bundled yolov8s-1024-int8 was REMOVED: exported without calibration data it produced nonsense (baseball glove for a pile of bottles, scores pinned at 0.500), reproducibly, in the reference runtime as well as on device."
+    }
+  ]
+}

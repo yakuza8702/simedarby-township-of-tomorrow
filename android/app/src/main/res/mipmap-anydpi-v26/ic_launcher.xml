@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Adaptive launcher icon — Township of Tomorrow (icon refresh v0.4.0).
+     Background: flat community green (#2E7D32, values/colors.xml).
+     Foreground: recycling loop + leaf glyph on the 108dp grid
+     (mipmap-<dpi>/ic_launcher_foreground.png, glyph inside the inner
+     66% safe zone). Source: tool/icons/app_icon.svg. -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background"/>
+    <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
+</adaptive-icon>

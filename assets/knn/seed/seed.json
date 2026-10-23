@@ -1,0 +1,34 @@
+[
+ {
+  "file": "knn/seed/bottle_plastic.jpg",
+  "label": "plastic bottle"
+ },
+ {
+  "file": "knn/seed/can_aluminium.jpg",
+  "label": "aluminium can"
+ },
+ {
+  "file": "knn/seed/banana_peel.jpg",
+  "label": "banana peel"
+ },
+ {
+  "file": "knn/seed/cardboard_box.jpg",
+  "label": "cardboard box"
+ },
+ {
+  "file": "knn/seed/laptop.jpg",
+  "label": "laptop"
+ },
+ {
+  "file": "knn/seed/battery_aa.jpg",
+  "label": "AA battery"
+ },
+ {
+  "file": "knn/seed/tshirt.jpg",
+  "label": "t-shirt"
+ },
+ {
+  "file": "knn/seed/tissue_paper.jpg",
+  "label": "tissue paper"
+ }
+]

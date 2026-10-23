@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Adaptive icon background: community/recycle green (#2E7D32).
+         Matches the base of the squircle tile in tool/icons/app_icon.svg. -->
+    <color name="ic_launcher_background">#2E7D32</color>
+</resources>
