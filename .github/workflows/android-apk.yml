@@ -15,11 +15,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17 (Temurin)
+      # JDK 21 = locally verified toolchain (v0.4.1 built under Java 21); Java 17 fails Kotlin DSL script compilation
+      - name: Set up JDK 21 (Temurin)
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - name: Set up Flutter 3.47.7
         uses: subosito/flutter-action@v2
