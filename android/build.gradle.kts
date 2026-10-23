@@ -4,25 +4,15 @@ allprojects {
         mavenCentral()
     }
 }
-// One JVM target everywhere: AGP 8.x defaults javac to 11 while KGP 2.x
-// defaults Kotlin to 21, and plugin projects trip on the mismatch. Must run
-// AFTER each subproject's own build.gradle (which sets Java 11 explicitly).
-subprojects {
-    afterEvaluate {
-        // AGP routes javac -source/-target from compileOptions, not the task property.
-        extensions.findByType(com.android.build.gradle.BaseExtension::class.java)?.apply {
-            compileOptions {
-                sourceCompatibility = JavaVersion.VERSION_17
-                targetCompatibility = JavaVersion.VERSION_17
-            }
-        }
-        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-            compilerOptions {
-                jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
-            }
-        }
-    }
-}
+// NOTE (CI fix): a previous `subprojects { afterEvaluate { extensions.findByType(
+// com.android.build.gradle.BaseExtension::class.java) ... } }` block that
+// forced compileOptions / kotlin jvmTarget 17 was REMOVED here. The root
+// script's classpath does NOT contain AGP (AGP + KGP ride in via flutter_tools'
+// includeBuild at the subproject level), so any com.android.* reference in this
+// root script fails Kotlin DSL script compilation ("Unresolved reference
+// 'android'"). No behaviour is lost: the only subproject (:app) already sets
+// compileOptions { source/targetCompatibility = JavaVersion.VERSION_17 } and
+// kotlin { compilerOptions { jvmTarget = JVM_17 } } in its own build script.
 
 val newBuildDir: Directory =
     rootProject.layout.buildDirectory
