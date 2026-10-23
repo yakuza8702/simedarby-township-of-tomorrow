@@ -1,0 +1,369 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Design tokens (P2-SPEC §4). Source-Sans-like system stack — no remote fonts.
+ * All colours are plain hex (not hsl channels) so arbitrary utility usage
+ * (e.g. bg-[#F1F8E9]) and token utilities stay identical.
+ *
+ * DARK MODE (Task C) — every surface/ink/border/chip colour is a CSS custom
+ * property whose LIGHT value equals the original hardcoded hex EXACTLY, so the
+ * light theme is pixel-identical to the pre-dark build. The `.dark` block only
+ * overrides the same properties with the dark palette (bg #121412, surface
+ * #1C1E1C, card #202322, green-tinted panels #16211A, text #E6E4E1 /
+ * #A8ADA8, tinted-transparent chips). Components reference the vars via
+ * `bg-[var(--surface)]` etc. — never raw hexes.
+ */
+:root {
+  /* ---- surfaces ---- */
+  --background: #ffffff; /* page background (body, shell root) */
+  --surface: #ffffff; /* flat panels: table cards, topbar, sheet, menus */
+  --card: #ffffff; /* Card component */
+  --input-bg: #fafafa; /* inputs, tabs list, table footer, pills */
+  --sidebar: #f1f8e9; /* green sidebar + green hover fills */
+  --active-tint: #e8f5e9; /* active tab/chip/menu-item tint */
+  --row-hover: #f8fbf4;
+  --skeleton: #eeeeee;
+  --surface-70: rgba(255, 255, 255, 0.7); /* white/70 over green sidebar */
+  --surface-80: rgba(255, 255, 255, 0.8); /* white/80 teaser cards */
+  --surface-90: rgba(255, 255, 255, 0.9); /* floating map overlays */
+  --hero-orb-blue: rgba(227, 242, 253, 0.6);
+
+  /* ---- borders ---- */
+  --border-plain: #e0e0e0;
+  --border-green: #c8e6c9;
+
+  /* ---- ink ---- */
+  --ink-primary: #1c1b1f;
+  --ink-secondary: #616161;
+  --ink-tertiary: #424242;
+
+  /* ---- greens (solid fills stay identical in dark) ---- */
+  --green-solid: #2e7d32;
+  --green-solid-hover: #388e3c;
+  --green-solid-strong: #1b5e20;
+  --green-text: #2e7d32; /* green text/icons on surfaces */
+  --focus-ring: #2e7d32;
+  /* F3 — route progress fill gets its own token so dark mode can use a
+     brighter green: #66BB6A vs the dark track #1E2B20 = 6.25:1 (light
+     #2E7D32 vs #E8F5E9 = 4.56:1; both ≥ 3:1 non-text requirement). */
+  --progress-fill: #2e7d32;
+
+  /* ---- chips / tints (status, priority, banners) ---- */
+  --chip-amber-bg: #fff8e1;
+  --chip-amber-text: #8d6e00;
+  --chip-amber-border: #f9a825;
+  --chip-amber-hover: #fdf3d7;
+  --chip-blue-bg: #e3f2fd;
+  /* F2 — LIGHT-ONLY contrast fix (dark block below is unchanged): the old
+     #1e88e5 / #1976d2 rendered 3.22:1 / 4.03:1 on this #e3f2fd chip bg.
+     Darkened one Material step each — same blue hue family:
+     #1565C0 = 5.03:1, #0D47A1 = 7.56:1 (WCAG AA ≥ 4.5:1 for chip text). */
+  --chip-blue-text: #1565c0;
+  --chip-blue-strong: #0d47a1;
+  --chip-blue-border: rgba(30, 136, 229, 0.35);
+  --chip-green-bg: #e8f5e9;
+  --chip-green-text: #2e7d32;
+  --chip-green-border: #c8e6c9;
+  --chip-green-hover: #dcedd4;
+  --chip-red-bg: #fdecec;
+  --chip-red-text: #b71c1c;
+  --chip-red-border: #f3c6c6;
+
+  /* ---- errors ---- */
+  --error-soft: #d32f2f;
+  --error-strong: #b71c1c;
+  --error-text: #d32f2f;
+  --error-ring: rgba(211, 47, 47, 0.3);
+
+  /* ---- misc ---- */
+  --ring-offset: #ffffff;
+  --map-bg: #f6faf2; /* map surface fallback when tiles are unavailable */
+  --map-pin: #2e7d32;
+  --selection-bg: #c8e6c9;
+  --selection-ink: #1c1b1f;
+
+  --radius: 8px;
+
+  /* shadcn hsl channels (legacy, kept for utilities like bg-background) */
+  --background-hsl: 0 0% 100%;
+  --foreground-hsl: 24 8% 10%;
+  --card-hsl: 0 0% 100%;
+  --card-foreground-hsl: 24 8% 10%;
+  --popover-hsl: 0 0% 100%;
+  --popover-foreground-hsl: 24 8% 10%;
+  --primary-hsl: 122 41% 31%;
+  --primary-foreground-hsl: 0 0% 100%;
+  --secondary-hsl: 0 0% 38%;
+  --secondary-foreground-hsl: 0 0% 100%;
+  --muted-hsl: 0 0% 96%;
+  --muted-foreground-hsl: 0 0% 38%;
+  --accent-hsl: 122 60% 95%;
+  --accent-foreground-hsl: 122 41% 24%;
+  --destructive-hsl: 0 72% 51%;
+  --destructive-foreground-hsl: 0 0% 100%;
+  --border-hsl: 0 0% 88%;
+  --input-hsl: 0 0% 88%;
+  --ring-hsl: 122 41% 31%;
+}
+
+.dark {
+  /* ---- surfaces ---- */
+  --background: #121412;
+  --surface: #1c1e1c;
+  --card: #202322;
+  --input-bg: #141614;
+  --sidebar: #16211a;
+  --active-tint: #1e2b20;
+  --row-hover: #232724;
+  --skeleton: #2a2e2b;
+  --surface-70: rgba(32, 35, 34, 0.85);
+  --surface-80: rgba(32, 35, 34, 0.88);
+  --surface-90: rgba(28, 30, 28, 0.92);
+  --hero-orb-blue: rgba(30, 136, 229, 0.12);
+
+  /* ---- borders ---- */
+  --border-plain: #2e322f;
+  --border-green: #2f4233;
+
+  /* ---- ink (AA ≥ 4.5:1 on dark surfaces) ---- */
+  --ink-primary: #e6e4e1;
+  --ink-secondary: #a8ada8;
+  --ink-tertiary: #d6d9d4;
+
+  /* ---- greens ---- */
+  --green-solid: #2e7d32; /* solid fills keep the brand green */
+  --green-solid-hover: #388e3c;
+  --green-solid-strong: #1b5e20;
+  --green-text: #81c784; /* brighter green text on dark */
+  --focus-ring: #66bb6a;
+  --progress-fill: #66bb6a; /* F3 — ≥3:1 vs dark track #1e2b20 */
+
+  /* ---- chips: tinted-transparent backgrounds + bright inks ---- */
+  --chip-amber-bg: rgba(249, 168, 37, 0.14);
+  --chip-amber-text: #fbc02d;
+  --chip-amber-border: rgba(249, 168, 37, 0.5);
+  --chip-amber-hover: rgba(249, 168, 37, 0.24);
+  --chip-blue-bg: rgba(30, 136, 229, 0.16);
+  --chip-blue-text: #64b5f6;
+  --chip-blue-strong: #64b5f6;
+  --chip-blue-border: rgba(30, 136, 229, 0.45);
+  --chip-green-bg: rgba(56, 142, 60, 0.16);
+  --chip-green-text: #81c784;
+  --chip-green-border: rgba(56, 142, 60, 0.45);
+  --chip-green-hover: rgba(56, 142, 60, 0.26);
+  --chip-red-bg: rgba(211, 47, 47, 0.16);
+  --chip-red-text: #ef9a9a;
+  --chip-red-border: rgba(211, 47, 47, 0.45);
+
+  /* ---- errors ---- */
+  --error-soft: #d32f2f;
+  --error-strong: #b71c1c;
+  --error-text: #ef9a9a;
+  --error-ring: rgba(239, 154, 154, 0.35);
+
+  /* ---- misc ---- */
+  --ring-offset: #121412;
+  --map-bg: #1a1d1a;
+  --map-pin: #66bb6a;
+  --selection-bg: #2f4233;
+  --selection-ink: #e6e4e1;
+
+  /* shadcn hsl channels (dark equivalents) */
+  --background-hsl: 222 14% 7%;
+  --foreground-hsl: 60 5% 90%;
+  --card-hsl: 120 5% 13%;
+  --card-foreground-hsl: 60 5% 90%;
+  --popover-hsl: 120 5% 11%;
+  --popover-foreground-hsl: 60 5% 90%;
+  --primary-hsl: 122 41% 31%;
+  --primary-foreground-hsl: 0 0% 100%;
+  --secondary-hsl: 0 0% 16%;
+  --secondary-foreground-hsl: 60 5% 90%;
+  --muted-hsl: 120 6% 15%;
+  --muted-foreground-hsl: 87 8% 67%;
+  --accent-hsl: 122 30% 14%;
+  --accent-foreground-hsl: 122 41% 72%;
+  --destructive-hsl: 0 72% 51%;
+  --destructive-foreground-hsl: 0 0% 100%;
+  --border-hsl: 120 6% 18%;
+  --input-hsl: 120 6% 18%;
+  --ring-hsl: 122 41% 55%;
+}
+
+/* Legacy hsl-channel names live in the -hsl suffixed vars above; the tailwind
+   config maps bg-background / border-border style utilities onto them. */
+
+* {
+  @apply border-divider;
+}
+
+body {
+  background: var(--background);
+  color: var(--ink-primary);
+  @apply antialiased;
+  font-family: theme("fontFamily.sans");
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+::selection {
+  background: var(--selection-bg);
+  color: var(--selection-ink);
+}
+
+/* Visually hidden, still announced by screen readers. */
+.sr-only-focusable:focus-visible {
+  @apply not-sr-only;
+}
+
+/* Map surface (fallback grid shown when OSM tiles cannot load — offline). */
+.map-grid {
+  background-color: var(--map-bg);
+  background-image:
+    linear-gradient(to right, rgba(46, 125, 50, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(46, 125, 50, 0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/*
+ * Leaflet map theming (Task A + C).
+ * - .map-tile-bg paints the grey fallback behind tiles (usable offline).
+ * - Pins are divIcons: priority colours follow the design palette and swap to
+ *   brighter variants in dark mode via the classes below.
+ * - Leaflet chrome (attribution, tooltips, popups) follows the surface tokens.
+ */
+.map-tile-bg {
+  background: var(--map-bg);
+}
+
+.map-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  border: 2px solid var(--surface);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  transition: transform 0.12s ease;
+}
+.map-pin:hover,
+.map-pin:focus-visible {
+  transform: scale(1.12);
+}
+.map-pin--high { background: #d32f2f; }
+.map-pin--medium { background: #f9a825; }
+.map-pin--low { background: #616161; }
+.map-pin--selected {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+.dark .map-pin--high { background: #ef5350; }
+.dark .map-pin--medium { background: #ffb300; }
+.dark .map-pin--low { background: #9e9e9e; }
+
+.map-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border-radius: 9999px;
+  background: var(--green-solid);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  border: 2px solid var(--surface);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
+  transition: transform 0.12s ease;
+}
+.map-cluster:hover,
+.map-cluster:focus-visible {
+  transform: scale(1.1);
+  background: var(--green-solid-hover);
+}
+.map-cluster--selected {
+  background: var(--green-solid-strong);
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+/* Leaflet chrome — keep attribution / tooltips readable in both themes. */
+.leaflet-container {
+  background: var(--map-bg);
+  font-family: inherit;
+}
+.leaflet-control-attribution {
+  background: var(--surface-90) !important;
+  color: var(--ink-secondary) !important;
+  font-size: 10px !important;
+}
+.leaflet-control-attribution a {
+  color: var(--green-text) !important;
+}
+.leaflet-bar a,
+.leaflet-bar a:hover {
+  background: var(--surface) !important;
+  color: var(--ink-primary) !important;
+  border-bottom-color: var(--border-plain) !important;
+}
+.leaflet-tooltip {
+  background: var(--card) !important;
+  color: var(--ink-primary) !important;
+  border: 1px solid var(--border-plain) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+}
+.leaflet-tooltip::before {
+  border-top-color: var(--border-plain) !important;
+}
+.leaflet-marker-icon:focus {
+  outline: none;
+}
+
+/* Waste-stream colour dots (sector collection calendar). */
+.stream-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+.stream-dot--general { background: #616161; }
+.stream-dot--organic { background: #388e3c; }
+.stream-dot--recycling { background: #1e88e5; }
+.stream-dot--glass { background: #f9a825; }
+.dark .stream-dot--general { background: #9e9e9e; }
+.dark .stream-dot--organic { background: #66bb6a; }
+.dark .stream-dot--recycling { background: #64b5f6; }
+.dark .stream-dot--glass { background: #ffb300; }
+
+/* Route progress bar (accent green, P2-SPEC primary). */
+.progress-track {
+  height: 8px;
+  width: 100%;
+  border-radius: 9999px;
+  background: var(--active-tint);
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: var(--progress-fill); /* F3 — theme-aware (brighter in dark) */
+  transition: width 0.3s ease;
+}
+
+/* Thin scrollbars inside panels. */
+.panel-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.panel-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-plain);
+  border-radius: 8px;
+}
+.panel-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
