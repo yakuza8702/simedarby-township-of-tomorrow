@@ -40,8 +40,19 @@ pluginManagement {
 
     plugins {
         id("dev.flutter.flutter-plugin-loader") version ver("flutterPluginLoader")
-        // AGP + KGP ride in via the flutter_tools includeBuild runtime classpath;
-        // their versions must stay aligned with that build (see toml comment).
+        // AGP + KGP versions are declared here as build-wide defaults, read from
+        // gradle/libs.versions.toml (single source of truth). They are then
+        // REQUESTED with `apply false` by the top-level plugins block below.
+        // Both halves are needed: the defaults alone only work when something
+        // already puts AGP on this build's classpath (locally the flutter_tools
+        // includeBuild above did), while a FRESH clone (CI) fails in :app with
+        // "Plugin Repositories (plugin dependency must include a version number
+        // for this source)". Requesting them at settings level puts AGP/KGP on
+        // the settings classpath, inherited by every project and by the included
+        // Flutter plugin build — what Flutter's stock template does with literal
+        // versions.
+        id("com.android.application") version ver("agp") apply false
+        id("org.jetbrains.kotlin.android") version ver("kotlin") apply false
     }
 }
 
@@ -49,6 +60,10 @@ plugins {
     // Applied here (not just declared) — this is what makes the loader include
     // every Android plugin from .flutter-plugins-dependencies.
     id("dev.flutter.flutter-plugin-loader")
+    // Resolved, not applied: puts AGP/KGP on the settings classpath so :app can
+    // keep applying them without a version (versions come from the defaults above).
+    id("com.android.application") apply false
+    id("org.jetbrains.kotlin.android") apply false
 }
 
 include(":app")
