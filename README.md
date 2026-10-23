@@ -48,9 +48,10 @@ cd android && ./gradlew assembleRelease ...
   -Ptree-shake-icons=true
 ```
 
-The three flags come straight from the v0.4.1 size ledger in
-`test-folder/logs/arm64-size-report-v041.md`. Without them the release APK
-ships all three ABIs (192 MB instead of 96 MB) and skips icon tree-shaking.
+The three flags match `.github/workflows/android-apk.yml` (band sizes
+96–97 MB; measured locally, ledger not shipped in-repo). Without them the
+release APK ships all three ABIs (192 MB instead of 96 MB) and skips icon
+tree-shaking.
 That happens because the Flutter plugin clears `abiFilters` and the raw Gradle
 path does not shake icons by default. In practice, `township.abiFilters` alone
 is a measured no-op.

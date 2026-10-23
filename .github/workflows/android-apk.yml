@@ -42,11 +42,10 @@ jobs:
         id: sha256
         run: |
           set -euo pipefail
-          APK="$(ls build/app/outputs/apk/release/*.apk android/app/build/outputs/apk/release/*.apk 2>/dev/null | head -n 1)"
-          if [ -z "$APK" ]; then
-            echo "::error::No release APK found"
-            exit 1
-          fi
+          shopt -s nullglob
+          apks=(android/app/build/outputs/apk/release/*.apk)
+          [ ${#apks[@]} -gt 0 ] || { echo "::error::no release apk found"; exit 1; }
+          APK="${apks[0]}"
           echo "apk=$APK" >> "$GITHUB_OUTPUT"
           SUM="$(sha256sum "$APK")"
           SIZE="$(stat -c %s "$APK")"
