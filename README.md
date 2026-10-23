@@ -30,6 +30,8 @@ Take the first option when you only want to install the app. The second is
 what you want after touching the source, and the exact command sits below.
 Both paths end at the same release build.
 
+Pin Flutter **3.47.7** (stable) — same as the CI workflow (`.github/workflows/android-apk.yml`).
+
 ```bash
 flutter pub get
 flutter build apk --release \
