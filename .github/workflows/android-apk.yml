@@ -6,6 +6,9 @@ on:
     tags: ['v*']
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-arm64-release:
     name: Build arm64 release APK
@@ -58,6 +61,9 @@ jobs:
           [ ${#apks[@]} -gt 0 ] || { echo "::error::no release apk found"; exit 1; }
           APK="${apks[0]}"
           echo "apk=$APK" >> "$GITHUB_OUTPUT"
+          # Resolved path consumed by the "Stage APK for release" step and by
+          # the android-release job (via the app-release-apk artefact).
+          echo "apk_path=$APK" >> "$GITHUB_OUTPUT"
           SUM="$(sha256sum "$APK")"
           SIZE="$(stat -c %s "$APK")"
           echo "$SUM"
@@ -73,6 +79,16 @@ jobs:
             echo "Single-ABI build: \`arm64-v8a\` only (\`-Pdisable-abi-filtering=true\`, \`-Ptree-shake-icons=true\`)."
           } >> "$GITHUB_STEP_SUMMARY"
 
+      # Normalise the resolved APK to a single predictable path so the release
+      # job can consume it without re-running Gradle.
+      - name: Stage APK for release
+        id: stage
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cp "${{ steps.sha256.outputs.apk_path }}" dist/app-release.apk
+          sha256sum dist/app-release.apk
+
       - name: Upload APK artefact
         uses: actions/upload-artifact@v4
         with:
@@ -81,3 +97,52 @@ jobs:
             build/app/outputs/apk/release/*.apk
             android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
+
+      # Dedicated single-file artefact: the release job downloads ONLY this
+      # (small, exact) instead of the whole multi-APK bundle.
+      - name: Upload raw APK artefact for release
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: dist/app-release.apk
+          if-no-files-found: error
+
+  android-release:
+    name: Publish GitHub Release (v* tags)
+    needs: build-arm64-release
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download release APK
+        uses: actions/download-artifact@v4
+        with:
+          name: app-release-apk
+          path: dist
+
+      - name: Compute sha256 + size
+        id: meta
+        run: |
+          set -euo pipefail
+          ls -l dist
+          SHA="$(sha256sum dist/app-release.apk | cut -d' ' -f1)"
+          SIZE="$(stat -c %s dist/app-release.apk)"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "size=$SIZE" >> "$GITHUB_OUTPUT"
+          echo "sha256=$SHA size=$SIZE"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/app-release.apk
+          name: Township of Tomorrow ${{ github.ref_name }}
+          body: |
+            Township of Tomorrow ${{ github.ref_name }} — arm64-v8a release APK.
+
+            sha256: `${{ steps.meta.outputs.sha }}` · size: ${{ steps.meta.outputs.size }} bytes
+
+            Install: download `app-release.apk` below, then `adb install -r app-release.apk`
+            (or copy to an arm64 device and open it with "Install unknown apps" enabled).
+          draft: false
+          prerelease: false
+          generate_release_notes: true
