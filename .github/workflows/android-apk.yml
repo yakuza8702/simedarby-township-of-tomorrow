@@ -32,6 +32,13 @@ jobs:
       - name: flutter pub get
         run: flutter pub get
 
+      # `pub get` rewrites the committed registrant WITH the dev-only
+      # integration_test plugin, but the release classpath prunes that dev
+      # dependency (Flutter PluginHandler) -> java compile fails on the
+      # missing package. Restore the release-form registrant committed in git.
+      - name: Restore release-form plugin registrant
+        run: git checkout HEAD -- android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+
       # Documented single-ABI release chain — README.md ("Quirk when running
       # Gradle directly") + test-folder/logs/arm64-size-report-v041.md.
       # The three flags are mandatory: without them the APK ships all three
