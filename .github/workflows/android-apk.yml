@@ -51,7 +51,10 @@ jobs:
         run: |
           set -euo pipefail
           shopt -s nullglob
-          apks=(android/app/build/outputs/apk/release/*.apk)
+          # android/build.gradle.kts redirects rootProject buildDirectory to
+          # <repo>/build, so :app output lands in build/app/... (not android/app/...).
+          # Glob both, mirroring the Upload APK artefact step below.
+          apks=(build/app/outputs/apk/release/*.apk android/app/build/outputs/apk/release/*.apk)
           [ ${#apks[@]} -gt 0 ] || { echo "::error::no release apk found"; exit 1; }
           APK="${apks[0]}"
           echo "apk=$APK" >> "$GITHUB_OUTPUT"
